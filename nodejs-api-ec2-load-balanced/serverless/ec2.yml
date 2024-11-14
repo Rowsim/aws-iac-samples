@@ -1,0 +1,131 @@
+Resources:
+  NodeEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.nano
+      ImageId: ami-00385a401487aefa4
+      KeyName: node-ec2
+      SecurityGroupIds:
+        - !Ref NodeEC2SG
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          # Install Docker
+          sudo yum update -y
+          sudo yum install docker -y
+          sudo service docker start
+          sudo usermod -a -G docker ec2-user
+          sudo docker pull REDACTED/n-api-test:latest
+          sudo docker run -d -p 3000:3000 REDACTED/n-api-test:latest
+          sudo docker ps
+
+  NodeEC2InstanceCherry:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.nano
+      ImageId: ami-00385a401487aefa4
+      KeyName: node-ec2
+      SecurityGroupIds:
+        - !Ref NodeEC2SG
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          # Install Docker
+          sudo yum update -y
+          sudo yum install docker -y
+          sudo service docker start
+          sudo usermod -a -G docker ec2-user
+          sudo docker pull REDACTED/n-api-test:cherry
+          sudo docker run -d -p 3000:3000 REDACTED/n-api-test:cherry
+          sudo docker ps
+
+  NodeEC2SG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTP access
+      VpcId: vpc-8d3ae8f4
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0 
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+  NodeListener:
+   Type: AWS::ElasticLoadBalancingV2::Listener
+   Properties:
+     LoadBalancerArn: !Ref NodeEC2LoadBalancer
+     Port: 80
+     Protocol: HTTP
+     DefaultActions:
+       - Type: forward
+         TargetGroupArn: !Ref NodeTargetGroupLTS
+
+  NodeListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - Type: forward
+          ForwardConfig:
+            TargetGroups:
+              - TargetGroupArn: !Ref NodeTargetGroupLTS
+                Weight: 70
+              - TargetGroupArn: !Ref NodeTargetGroupCherry
+                Weight: 30
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - /test
+      Priority: 1
+      ListenerArn: !Ref NodeListener
+
+  NodeTargetGroupLTS:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      TargetGroupName: NodeTargetGroupLTS
+      TargetType: instance
+      Port: 3000
+      Protocol: HTTP
+      VpcId: vpc-8d3ae8f4
+      HealthCheckProtocol: HTTP
+      HealthCheckPath: /test
+      HealthCheckIntervalSeconds: 60
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
+      Targets:
+        - Id: !Ref NodeEC2Instance
+
+  NodeTargetGroupCherry:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      TargetGroupName: NodeTargetGroupCherry
+      TargetType: instance
+      Port: 3000
+      Protocol: HTTP
+      VpcId: vpc-8d3ae8f4
+      HealthCheckProtocol: HTTP
+      HealthCheckPath: /test
+      HealthCheckIntervalSeconds: 60
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
+      Targets:
+        - Id: !Ref NodeEC2InstanceCherry
+
+  NodeEC2LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      LoadBalancerName: node-ec2-load-balancer
+      SecurityGroups:
+        - !Ref NodeEC2SG
+      Subnets:
+        - subnet-0816196e
+        - subnet-c3f9b099

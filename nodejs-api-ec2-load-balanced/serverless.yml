@@ -1,0 +1,13 @@
+service: node-ec2-load-balanced
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  profile: ${env:PROFILE, 'default'}
+  region: ${env:REGION, 'eu-west-1'}
+  stage: ${env:ENV, 'dev'}
+  environment:
+    PACKAGE_VERSION: 1
+
+resources:
+  - ${file(./serverless/ec2.yml)}
