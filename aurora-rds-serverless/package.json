@@ -1,0 +1,21 @@
+{
+  "name": "aurora-serverless",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "sls deploy",
+    "offline": "sls offline --reloadHandler",
+    "inv": "serverless invoke local --function test-rds"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "serverless": "^3.39.0",
+    "serverless-offline": "^14.3.3"
+  },
+  "dependencies": {
+    "@aws-sdk/client-rds-data": "^3.679.0"
+  }
+}

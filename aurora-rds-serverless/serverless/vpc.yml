@@ -1,0 +1,42 @@
+Resources:
+  AuroraVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: aurora-vpc
+  
+  AuroraSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref AuroraVPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: aurora-subnet-1
+  
+  AuroraSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref AuroraVPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: aurora-subnet-2
+  
+  AuroraSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow access to RDS
+      VpcId: !Ref AuroraVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432

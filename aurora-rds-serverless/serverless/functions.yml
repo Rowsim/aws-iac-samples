@@ -1,0 +1,8 @@
+test-rds:
+    handler: src/functions/test-rds-query.handler
+    vpc:
+      securityGroupIds:
+        - !Ref AuroraSecurityGroup
+      subnetIds:
+        - !Ref AuroraSubnet1
+        - !Ref AuroraSubnet2
