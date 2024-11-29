@@ -1,0 +1,23 @@
+service: api-gateway-websockets-lambda
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  profile: ${env:PROFILE, 'default'}
+  region: ${env:REGION, 'eu-west-1'}
+  stage: ${env:ENV, 'dev'}
+  iamRoleStatements:  ${file(./serverless/lambda-role.yml):iamRoleStatements}
+  environment:
+    SESSION_TABLE_NAME: !Ref WebsocektSessionsTable
+    API_GATEWAY_CONNECTIONS_URL: !Join ["", ["https://", !Ref WebsocketsApi, ".execute-api.", !Ref AWS::Region, ".amazonaws.com/${self:provider.stage}"]]
+
+package:
+  patterns:
+    - '!./**'
+    - dist/websocket.js
+
+resources:
+  - ${file(./serverless/tables.yml)}
+
+functions:
+  - ${file(./serverless/functions.yml)}

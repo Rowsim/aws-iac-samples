@@ -1,0 +1,20 @@
+{
+  "name": "api-gateway-websockets-lambda",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "esbuild src/functions/websocket.js --bundle --platform=node --target=node20 --outfile=dist/websocket.js",
+    "deploy": "npm run build && npx serverless@3 deploy"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-apigatewaymanagementapi": "^3.699.0",
+    "@aws-sdk/client-dynamodb": "^3.699.0",
+    "@aws-sdk/util-dynamodb": "^3.699.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}

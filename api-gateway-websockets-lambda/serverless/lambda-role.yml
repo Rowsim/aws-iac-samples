@@ -1,0 +1,18 @@
+iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - "execute-api:Invoke"
+        - "execute-api:ManageConnections"
+      Resource: 
+        - !GetAtt WebsocektSessionsTable.Arn
+        - !Join ["", ["arn:aws:execute-api:", !Ref "AWS::Region", ":", !Ref 'AWS::AccountId', ":", !Ref 'WebsocketsApi', "/${self:provider.stage}/*/*"]] 
+
+    - Effect: 'Allow'
+      Action:
+        - "dynamodb:GetItem"
+        - "dynamodb:PutItem"
+        - "dynamodb:BatchWriteItem"
+        - "dynamodb:Query"
+      Resource: 
+        - !GetAtt WebsocektSessionsTable.Arn
+        - !Join ["", [!GetAtt WebsocektSessionsTable.Arn, "/index/*"]]

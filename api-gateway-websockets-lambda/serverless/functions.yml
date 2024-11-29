@@ -1,0 +1,6 @@
+websocket:
+  handler: dist/websocket.handler
+  events:
+    - websocket: $connect
+    - websocket: $disconnect
+    - websocket: $default
