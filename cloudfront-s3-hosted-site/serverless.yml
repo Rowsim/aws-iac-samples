@@ -1,0 +1,118 @@
+service: ${file(package.json):name}
+plugins:
+    - serverless-s3-sync
+    - serverless-cloudfront-invalidate
+
+provider:
+    name: aws
+    runtime: nodejs20.x
+    profile: ${env:PROFILE, 'default'}
+    region: ${env:REGION, 'eu-west-2'}
+    stage: ${env:STAGE, 'dev'}
+
+custom:
+    siteName: test-cf-s3-react-app
+    bucketName: ${self:custom.siteName}-${self:provider.stage}
+    s3Sync:
+        - bucketName: ${self:custom.bucketName}
+          localDir: dist
+    cloudfrontInvalidate:
+        - distributionIdKey: CDNDistributionId
+          items:
+              - '/*'
+resources:
+    Description: CloudFront Distribution serving a static react app from S3.
+    Resources:
+        AppS3Bucket:
+            Type: AWS::S3::Bucket
+            Properties:
+                BucketName: ${self:custom.bucketName}
+                PublicAccessBlockConfiguration:
+                    BlockPublicAcls: true
+                    BlockPublicPolicy: true
+                    IgnorePublicAcls: true
+                    RestrictPublicBuckets: true
+                OwnershipControls:
+                    Rules:
+                        - ObjectOwnership: BucketOwnerEnforced
+                CorsConfiguration:
+                    CorsRules:
+                        - AllowedHeaders:
+                            - '*'
+                          AllowedMethods:
+                            - GET
+                            - HEAD
+                          AllowedOrigins:
+                            - '*'
+                          ExposedHeaders:
+                            - ETag
+                          MaxAge: 3600
+
+        AppS3BucketPolicy:
+            Type: AWS::S3::BucketPolicy
+            Properties:
+                Bucket:
+                    Ref: AppS3Bucket
+                PolicyDocument:
+                    Statement:
+                        - Sid: AllowCloudFrontReadOnly
+                          Effect: Allow
+                          Principal: 
+                            Service: cloudfront.amazonaws.com
+                          Action:
+                              - s3:GetObject
+                          Resource: !Join ['', ['arn:aws:s3:::', { 'Ref': 'AppS3Bucket' }, '/*']]
+                          Condition:
+                            StringEquals:
+                                AWS:SourceArn: !Join ['', ['arn:aws:cloudfront::', !Ref 'AWS::AccountId', ':distribution/', !Ref 'CloudFrontDistribution']]
+
+        CloudFrontOriginAccessControl:
+            Type: AWS::CloudFront::OriginAccessControl
+            Properties:
+                OriginAccessControlConfig: 
+                    Description: OAC for allowing cloudfront access to s3
+                    Name: ${self:custom.bucketName}-oac
+                    OriginAccessControlOriginType: s3
+                    SigningBehavior: always
+                    SigningProtocol: sigv4
+
+        CloudFrontDistribution:
+            Type: AWS::CloudFront::Distribution
+            Properties:
+                DistributionConfig:
+                    Enabled: true
+                    Origins:
+                        - DomainName: !Sub ${self:custom.bucketName}.s3.${AWS::Region}.amazonaws.com
+                          Id: S3-${self:custom.siteName}
+                          S3OriginConfig:
+                            OriginAccessIdentity: !Ref AWS::NoValue
+                          OriginAccessControlId: !GetAtt CloudFrontOriginAccessControl.Id
+                    DefaultRootObject: index.html
+                    CustomErrorResponses:
+                        - ErrorCode: 404
+                          ResponseCode: 200
+                          ResponsePagePath: /index.html
+                    DefaultCacheBehavior:
+                        AllowedMethods:
+                            - DELETE
+                            - GET
+                            - HEAD
+                            - OPTIONS
+                            - PATCH
+                            - POST
+                            - PUT
+                        TargetOriginId: S3-${self:custom.siteName}
+                        ViewerProtocolPolicy: redirect-to-https
+                        ForwardedValues: # Deprecated - a cache/origin request policy should be used instead
+                            QueryString: 'false'
+                            Cookies:
+                                Forward: none
+                    ViewerCertificate:
+                        CloudFrontDefaultCertificate: true
+                        # Custom aliases (domain names) validated by ACM certificates can be added here
+
+    Outputs:
+        CDNDistributionId:
+            Description: CF CDN Distribution ID
+            Value:
+                Ref: CloudFrontDistribution
