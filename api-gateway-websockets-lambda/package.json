@@ -12,7 +12,8 @@
   "dependencies": {
     "@aws-sdk/client-apigatewaymanagementapi": "^3.699.0",
     "@aws-sdk/client-dynamodb": "^3.699.0",
-    "@aws-sdk/util-dynamodb": "^3.699.0"
+    "@aws-sdk/util-dynamodb": "^3.699.0",
+    "aws-xray-sdk": "^3.10.2"
   },
   "devDependencies": {
     "esbuild": "^0.24.0"

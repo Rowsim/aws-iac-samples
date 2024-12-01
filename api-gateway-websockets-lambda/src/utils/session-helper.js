@@ -1,11 +1,12 @@
 import { ApiGatewayManagementApiClient, PostToConnectionCommand } from "@aws-sdk/client-apigatewaymanagementapi"
 import { BatchWriteItemCommand, DynamoDBClient, PutItemCommand, QueryCommand } from "@aws-sdk/client-dynamodb"
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb"
+import * as AWSXRay from 'aws-xray-sdk';
 
-const apiGatewayClient = new ApiGatewayManagementApiClient({
+const apiGatewayClient = AWSXRay.captureAWSv3Client(new ApiGatewayManagementApiClient({
     endpoint: process.env.API_GATEWAY_CONNECTIONS_URL
-})
-const dynamoClient = new DynamoDBClient()
+}))
+const dynamoClient = AWSXRay.captureAWSv3Client(new DynamoDBClient())
 const TableName = process.env.SESSION_TABLE_NAME
 
 export const subscribeToTopic = async (connectionId, topic) => {

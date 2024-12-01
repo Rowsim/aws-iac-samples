@@ -7,6 +7,9 @@ provider:
   region: ${env:REGION, 'eu-west-1'}
   stage: ${env:ENV, 'dev'}
   iamRoleStatements:  ${file(./serverless/lambda-role.yml):iamRoleStatements}
+  tracing:
+    apiGateway: true
+    lambda: true
   environment:
     SESSION_TABLE_NAME: !Ref WebsocektSessionsTable
     API_GATEWAY_CONNECTIONS_URL: !Join ["", ["https://", !Ref WebsocketsApi, ".execute-api.", !Ref AWS::Region, ".amazonaws.com/${self:provider.stage}"]]

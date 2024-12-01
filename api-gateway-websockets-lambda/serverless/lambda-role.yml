@@ -16,3 +16,12 @@ iamRoleStatements:
       Resource: 
         - !GetAtt WebsocektSessionsTable.Arn
         - !Join ["", [!GetAtt WebsocektSessionsTable.Arn, "/index/*"]]
+
+    - Effect: 'Allow'
+      Action:
+        - "xray:PutTraceSegments"
+        - "xray:PutTelemetryRecords"
+        - "xray:GetSamplingRules"
+        - "xray:GetSamplingTargets"
+        - "xray:GetSamplingStatisticSummaries"
+      Resource: '*'
