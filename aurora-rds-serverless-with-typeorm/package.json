@@ -1,0 +1,27 @@
+{
+  "name": "aurora-serverless",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "sls deploy",
+    "offline": "sls offline --reloadHandler",
+    "build": "tsc",
+    "inv": "serverless invoke local --function test-rds"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "serverless": "^3.39.0",
+    "serverless-esbuild": "^1.54.6",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "pg": "^8.13.1",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.20",
+    "typeorm-aurora-data-api-driver": "^2.4.4"
+  }
+}
