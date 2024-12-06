@@ -1,0 +1,31 @@
+  Resources:
+    AuroraDBCluster:
+      Type: AWS::RDS::DBCluster
+      Properties:
+        Engine: aurora-postgresql
+        MasterUsername: test
+        MasterUserPassword: password
+        DBClusterIdentifier: aurora-sls-cluster
+        ServerlessV2ScalingConfiguration:
+          MinCapacity: 0.5
+          MaxCapacity: 1
+        VpcSecurityGroupIds:
+          - !Ref AuroraSecurityGroup
+        DBSubnetGroupName: !Ref DBSubnetGroup
+        EnableHttpEndpoint: true
+
+    DBSubnetGroup:
+      Type: AWS::RDS::DBSubnetGroup
+      Properties:
+        DBSubnetGroupDescription: Subnet group for Aurora
+        SubnetIds:
+          - !Ref AuroraSubnet1
+          - !Ref AuroraSubnet2
+
+    AuroraDBInstance:
+      Type: AWS::RDS::DBInstance
+      Properties:
+        DBInstanceClass: db.serverless
+        DBClusterIdentifier: !Ref AuroraDBCluster
+        Engine: aurora-postgresql
+        DBInstanceIdentifier: aurora-postgres-instance

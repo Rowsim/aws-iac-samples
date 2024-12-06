@@ -1,0 +1,8 @@
+test-rds-orm:
+    handler: src/functions/test-rds-orm.handler
+    vpc:
+      securityGroupIds:
+        - !Ref AuroraSecurityGroup
+      subnetIds:
+        - !Ref AuroraSubnet1
+        - !Ref AuroraSubnet2
